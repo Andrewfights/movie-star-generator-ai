@@ -79,18 +79,6 @@ const MoviePosterGenerator = () => {
     }
   };
 
-  const convertImageToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        resolve(base64String);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleGenerate = async () => {
     if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio) {
       toast({
@@ -104,15 +92,14 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const base64Image = await convertImageToBase64(selectedFile);
       const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. The description is: ${description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
+      // Create proper request body without reference_image parameter
       let requestBody: any = {
         model: selectedModel,
         prompt: prompt,
         n: 1,
         user: "movieposter-app-user",
-        reference_image: base64Image
       };
       
       if (selectedModel === "gpt-image-1") {
@@ -133,14 +120,12 @@ const MoviePosterGenerator = () => {
       
       if (response.ok) {
         let imageUrl;
-        if (selectedModel === "gpt-image-1") {
-          if (data.data[0].b64_json) {
-            imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
-          } else if (data.data[0].url) {
-            imageUrl = data.data[0].url;
-          } else {
-            throw new Error("No image data found in the response");
-          }
+        if (data.data[0].b64_json) {
+          imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
+        } else if (data.data[0].url) {
+          imageUrl = data.data[0].url;
+        } else {
+          throw new Error("No image data found in the response");
         }
         
         setGeneratedImage(imageUrl);

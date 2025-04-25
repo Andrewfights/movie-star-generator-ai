@@ -79,18 +79,6 @@ const ImageGenerator = () => {
     return generator.promptTemplate.replace('{description}', description);
   };
 
-  const convertImageToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        resolve(base64String);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleGenerate = async () => {
     const generator = getCurrentGenerator();
     
@@ -115,7 +103,6 @@ const ImageGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const base64Image = await convertImageToBase64(selectedFile);
       const prompt = buildPrompt();
       
       const requestBody = {
@@ -125,7 +112,6 @@ const ImageGenerator = () => {
         user: "ai-image-generator-app-user",
         size: getImageSize(aspectRatio),
         quality: "high",
-        reference_image: base64Image
       };
       
       const response = await fetch('https://api.openai.com/v1/images/generations', {
