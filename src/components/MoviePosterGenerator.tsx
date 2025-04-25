@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
@@ -47,7 +46,7 @@ const MoviePosterGenerator = () => {
         model: selectedModel,
         prompt: prompt,
         n: 1,
-        quality: "high", // Changed from "hd" to "high" - valid values are "low", "medium", "high", or "auto"
+        quality: "standard", // Updated to a supported value
         user: "movieposter-app-user",
       };
       
