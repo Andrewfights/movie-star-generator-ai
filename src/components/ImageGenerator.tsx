@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -111,7 +112,7 @@ const ImageGenerator = () => {
         n: 1,
         user: "ai-image-generator-app-user",
         size: getImageSize(aspectRatio),
-        quality: "standard"
+        quality: "high" // Changed from "standard" to "high"
       };
       
       const response = await fetch('https://api.openai.com/v1/images/generations', {

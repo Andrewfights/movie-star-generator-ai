@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
@@ -103,7 +104,7 @@ const MoviePosterGenerator = () => {
       
       if (selectedModel === "gpt-image-1") {
         requestBody.size = getImageSize(aspectRatio);
-        requestBody.quality = "high";
+        requestBody.quality = "high"; // Changed from "high" to ensure consistency
       }
       
       const response = await fetch('https://api.openai.com/v1/images/generations', {
