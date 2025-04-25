@@ -1,7 +1,7 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { ArrowDown } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import ApiKeyInput from './ApiKeyInput';
@@ -18,6 +18,7 @@ const GENRES = [
 const MoviePosterGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [movieTitle, setMovieTitle] = useState<string>("");
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
@@ -31,7 +32,6 @@ const MoviePosterGenerator = () => {
       if (file.type.startsWith('image/')) {
         setSelectedFile(file);
         
-        // Create a preview of the selected image
         const reader = new FileReader();
         reader.onloadend = () => {
           setFilePreview(reader.result as string);
@@ -48,10 +48,10 @@ const MoviePosterGenerator = () => {
   };
 
   const handleGenerate = async () => {
-    if (!selectedFile || !selectedGenre || !apiKey) {
+    if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim()) {
       toast({
         title: "Missing information",
-        description: "Please upload a photo, select a genre, and provide an API key",
+        description: "Please upload a photo, select a genre, provide a movie title, and an API key",
         variant: "destructive",
       });
       return;
@@ -60,13 +60,8 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Get the image as a data URL
-      const imageDataUrl = await readFileAsDataURL(selectedFile);
+      const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
-      // Create the prompt including user's genre
-      const prompt = `Create a movie poster in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate title, tagline, and visual effects for the ${selectedGenre} genre.`;
-      
-      // Call OpenAI API to generate image
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -77,7 +72,7 @@ const MoviePosterGenerator = () => {
           model: "dall-e-3",
           prompt: prompt,
           n: 1,
-          size: "1024x1792", // Typical movie poster ratio
+          size: "1024x1792",
           response_format: "url",
           quality: "hd",
           style: "vivid",
@@ -94,7 +89,6 @@ const MoviePosterGenerator = () => {
           description: "Your movie poster has been generated",
         });
       } else {
-        // Handle API error
         const errorMessage = data.error?.message || 'An error occurred during image generation';
         toast({
           title: "Generation failed",
@@ -115,7 +109,6 @@ const MoviePosterGenerator = () => {
     }
   };
 
-  // Helper function to read file as data URL
   const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -138,6 +131,7 @@ const MoviePosterGenerator = () => {
 
   const handleReset = () => {
     setGeneratedImage("");
+    setMovieTitle("");
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -197,6 +191,14 @@ const MoviePosterGenerator = () => {
               </div>
             </label>
 
+            <Input
+              type="text"
+              placeholder="Enter your movie title"
+              value={movieTitle}
+              onChange={(e) => setMovieTitle(e.target.value)}
+              className="w-full bg-gray-900 border-gray-800"
+            />
+
             <Select onValueChange={setSelectedGenre} value={selectedGenre}>
               <SelectTrigger className="w-full bg-gray-900 border-gray-800">
                 <SelectValue placeholder="Choose a genre" />
@@ -213,7 +215,7 @@ const MoviePosterGenerator = () => {
             <Button
               className="w-full"
               onClick={handleGenerate}
-              disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey}
+              disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey || !movieTitle.trim()}
             >
               {isGenerating ? "Generating..." : "Generate My Movie Poster"}
             </Button>
