@@ -47,7 +47,7 @@ const MoviePosterGenerator = () => {
         model: selectedModel,
         prompt: prompt,
         n: 1,
-        quality: "hd",
+        quality: "high", // Changed from "hd" to "high" - valid values are "low", "medium", "high", or "auto"
         user: "movieposter-app-user",
       };
       
