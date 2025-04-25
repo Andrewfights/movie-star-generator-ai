@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,8 +18,10 @@ const GENRES = [
 
 const MODELS = [
   { id: "dall-e-3", name: "DALL-E 3", ratio: "1024x1792" },
-  { id: "gpt-4-vision-preview", name: "GPT-4 Vision", ratio: "1024x1024" }
+  { id: "gpt-image-1", name: "GPT-image-1", ratio: "1024x1024" }
 ] as const;
+
+type ModelId = typeof MODELS[number]["id"];
 
 const MoviePosterGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,7 +31,7 @@ const MoviePosterGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<typeof MODELS[number]["id"]>("dall-e-3");
+  const [selectedModel, setSelectedModel] = useState<ModelId>("dall-e-3");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -206,7 +209,7 @@ const MoviePosterGenerator = () => {
               className="w-full bg-gray-900 border-gray-800"
             />
 
-            <Select onValueChange={setSelectedModel} value={selectedModel}>
+            <Select onValueChange={(value: ModelId) => setSelectedModel(value)} value={selectedModel}>
               <SelectTrigger className="w-full bg-gray-900 border-gray-800">
                 <SelectValue placeholder="Choose an AI model" />
               </SelectTrigger>
