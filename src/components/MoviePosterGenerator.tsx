@@ -48,7 +48,6 @@ const MoviePosterGenerator = () => {
         prompt: prompt,
         n: 1,
         quality: "hd",
-        style: "vivid",
         user: "movieposter-app-user",
       };
       
@@ -56,8 +55,8 @@ const MoviePosterGenerator = () => {
       if (selectedModel === "dall-e-3") {
         requestBody.size = "1024x1792";
         requestBody.response_format = "url";
+        requestBody.style = "vivid"; // Only DALL-E 3 supports the style parameter
       } else if (selectedModel === "gpt-image-1") {
-        // gpt-image-1 doesn't support response_format parameter
         requestBody.size = "1024x1024";
       }
       
