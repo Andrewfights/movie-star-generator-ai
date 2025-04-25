@@ -30,7 +30,7 @@ const MoviePosterGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<ModelId>("dall-e-3");
+  const [selectedModel, setSelectedModel] = useState<ModelId>("gpt-image-1");
   const [savedPosters, setSavedPosters] = useState<SavedPoster[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,11 +101,7 @@ const MoviePosterGenerator = () => {
         user: "movieposter-app-user",
       };
       
-      if (selectedModel === "dall-e-3") {
-        requestBody.size = getImageSize(aspectRatio);
-        requestBody.style = "vivid";
-        requestBody.quality = "standard";
-      } else if (selectedModel === "gpt-image-1") {
+      if (selectedModel === "gpt-image-1") {
         requestBody.size = getImageSize(aspectRatio);
         requestBody.quality = "high";
       }
@@ -123,9 +119,7 @@ const MoviePosterGenerator = () => {
       
       if (response.ok) {
         let imageUrl;
-        if (selectedModel === "dall-e-3") {
-          imageUrl = data.data[0].url;
-        } else if (selectedModel === "gpt-image-1") {
+        if (selectedModel === "gpt-image-1") {
           if (data.data[0].b64_json) {
             imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
           } else if (data.data[0].url) {
@@ -189,7 +183,7 @@ const MoviePosterGenerator = () => {
   const handleReset = () => {
     setGeneratedImage("");
     setMovieTitle("");
-    setSelectedModel("dall-e-3");
+    setSelectedModel("gpt-image-1");
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

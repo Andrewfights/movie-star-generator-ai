@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
-import ImageUploadForm, { MODELS, ASPECT_RATIOS } from './movie-poster/ImageUploadForm';
+import ImageUploadForm from './movie-poster/ImageUploadForm';
 import ImagePreview from './movie-poster/ImagePreview';
 import GeneratedImage from './movie-poster/GeneratedPoster';
 import GeneratorSelector, { GENERATORS } from './image-generators/GeneratorSelector';
