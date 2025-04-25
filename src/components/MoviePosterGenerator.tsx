@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDown } from "lucide-react";
@@ -21,13 +21,22 @@ const MoviePosterGenerator = () => {
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type.startsWith('image/')) {
         setSelectedFile(file);
+        
+        // Create a preview of the selected image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       } else {
         toast({
           title: "Invalid file type",
@@ -49,11 +58,76 @@ const MoviePosterGenerator = () => {
     }
 
     setIsGenerating(true);
-    // TODO: Implement actual API call here using apiKey
-    // For now, we'll just simulate a delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setGeneratedImage("/placeholder.svg");
-    setIsGenerating(false);
+    
+    try {
+      // Convert the image to base64
+      const base64Image = await convertFileToBase64(selectedFile);
+      
+      // Call OpenAI API to generate image
+      const prompt = `Create a movie poster in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate title, tagline, and visual effects for the ${selectedGenre} genre.`;
+      
+      const response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: prompt,
+          n: 1,
+          size: "1024x1792", // Typical movie poster ratio
+          response_format: "url",
+          quality: "hd",
+          style: "vivid",
+          user: "movieposter-app-user",
+          image: base64Image, // Include the reference image
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGeneratedImage(data.data[0].url);
+        toast({
+          title: "Success!",
+          description: "Your movie poster has been generated",
+        });
+      } else {
+        // Handle API error
+        const errorMessage = data.error?.message || 'An error occurred during image generation';
+        toast({
+          title: "Generation failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        console.error("OpenAI API error:", data);
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      toast({
+        title: "Generation failed",
+        description: "There was a problem connecting to the image generation service",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Extract the base64 data from the result
+        const base64String = reader.result as string;
+        // Remove the initial data:image/jpeg;base64, part to get just the base64 data
+        const base64Data = base64String.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = error => reject(error);
+    });
   };
 
   const handleDownload = () => {
@@ -65,6 +139,16 @@ const MoviePosterGenerator = () => {
       link.click();
       document.body.removeChild(link);
     }
+  };
+
+  const handleReset = () => {
+    setGeneratedImage("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setSelectedFile(null);
+    setFilePreview(null);
+    setSelectedGenre("");
   };
 
   return (
@@ -96,11 +180,19 @@ const MoviePosterGenerator = () => {
                     className="sr-only"
                     onChange={handleFileUpload}
                     accept="image/*"
+                    ref={fileInputRef}
                   />
-                  {selectedFile ? (
-                    <p className="text-sm text-gray-300">
-                      Selected: {selectedFile.name}
-                    </p>
+                  {filePreview ? (
+                    <div className="flex flex-col items-center">
+                      <img 
+                        src={filePreview} 
+                        alt="Preview" 
+                        className="max-h-40 max-w-full object-contain rounded"
+                      />
+                      <p className="text-sm text-gray-300 mt-2">
+                        Selected: {selectedFile?.name}
+                      </p>
+                    </div>
                   ) : (
                     <p className="text-sm text-gray-400">
                       Click to upload or drag and drop
@@ -110,7 +202,7 @@ const MoviePosterGenerator = () => {
               </div>
             </label>
 
-            <Select onValueChange={setSelectedGenre}>
+            <Select onValueChange={setSelectedGenre} value={selectedGenre}>
               <SelectTrigger className="w-full bg-gray-900 border-gray-800">
                 <SelectValue placeholder="Choose a genre" />
               </SelectTrigger>
@@ -150,7 +242,7 @@ const MoviePosterGenerator = () => {
                   Download Poster
                 </Button>
                 <Button
-                  onClick={() => setGeneratedImage("")}
+                  onClick={handleReset}
                   variant="outline"
                 >
                   Try Again
