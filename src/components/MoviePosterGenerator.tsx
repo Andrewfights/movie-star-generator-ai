@@ -74,7 +74,22 @@ const MoviePosterGenerator = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setGeneratedImage(data.data[0].url);
+        // Handle different response formats based on the model
+        let imageUrl;
+        if (selectedModel === "dall-e-3") {
+          imageUrl = data.data[0].url;
+        } else if (selectedModel === "gpt-image-1") {
+          // Check if the response has b64_json instead of url for gpt-image-1
+          if (data.data[0].b64_json) {
+            imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
+          } else if (data.data[0].url) {
+            imageUrl = data.data[0].url;
+          } else {
+            throw new Error("No image data found in the response");
+          }
+        }
+        
+        setGeneratedImage(imageUrl);
         toast({
           title: "Success!",
           description: "Your movie poster has been generated",
