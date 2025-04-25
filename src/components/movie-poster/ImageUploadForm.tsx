@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -102,7 +101,7 @@ const ImageUploadForm = ({
     }
   };
 
-  const isButtonDisabled = isGenerating || !selectedFile || !apiKey || !description.trim() || !aspectRatio || 
+  const isButtonDisabled = isGenerating || !selectedFile || !apiKey || 
     (showGenreSelector && !selectedGenre) || 
     (showTitleInput && !movieTitle.trim());
 
@@ -148,9 +147,9 @@ const ImageUploadForm = ({
         )}
 
         <div>
-          <p className="step-label">{showTitleInput ? "③" : "②"} Add Description</p>
+          <p className="step-label">{showTitleInput ? "③" : "②"} Add Description (Optional)</p>
           <Textarea
-            placeholder={`Describe your ${generatorId === "movie-poster" ? "movie poster" : "image"}`}
+            placeholder={`Describe your ${generatorId === "movie-poster" ? "movie poster" : "image"} (optional)`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="form-input w-full min-h-[100px]"

@@ -97,7 +97,7 @@ const MoviePosterGenerator = () => {
   };
 
   const handleGenerate = async () => {
-    if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio) {
+    if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim()) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
@@ -109,7 +109,8 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. The description is: ${description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
+      const descriptionText = description.trim() || "A movie poster";
+      const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. ${descriptionText ? `The description is: ${descriptionText}.` : ''} Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
       let requestBody: any = {
         model: selectedModel,

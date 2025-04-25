@@ -86,20 +86,22 @@ const ImageGenerator = () => {
   const buildPrompt = () => {
     const generator = getCurrentGenerator();
     
+    const descriptionText = description.trim() || "An image";
+    
     if (generator.id === "movie-poster") {
       return generator.promptTemplate
         .replace('{title}', title)
         .replace('{genre}', selectedGenre)
-        .replace('{description}', description);
+        .replace('{description}', descriptionText);
     }
     
-    return generator.promptTemplate.replace('{description}', description);
+    return generator.promptTemplate.replace('{description}', descriptionText);
   };
 
   const handleGenerate = async () => {
     const generator = getCurrentGenerator();
     
-    if (!selectedFile || !apiKey || !description.trim() || !aspectRatio) {
+    if (!selectedFile || !apiKey || !aspectRatio) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
