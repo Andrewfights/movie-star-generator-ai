@@ -9,7 +9,7 @@ export const GENERATORS: GeneratorType[] = [
     id: "movie-poster",
     name: "Movie Poster",
     description: "Become the star of your own movie poster!",
-    promptTemplate: "Create a movie poster for '{title}' in the {genre} genre featuring this person as the main character. The description is: {description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the {genre} genre. The movie title '{title}' should be prominently displayed.",
+    promptTemplate: "Create a movie poster for '{title}' in the {genre} genre featuring this person as the main character, wearing the same outfit/clothing as shown in the reference image. The description is: {description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the {genre} genre. The movie title '{title}' should be prominently displayed.",
     examplePrompt: "Create a movie poster for 'Cosmic Journey' in the Sci-Fi genre featuring this person as the main character.",
     icon: Film
   },
@@ -17,7 +17,7 @@ export const GENERATORS: GeneratorType[] = [
     id: "chibi",
     name: "Chibi Character",
     description: "Turn yourself into an adorable chibi character!",
-    promptTemplate: "Transform the person in the reference image into a chibi character with huge eyes, tiny body, and oversized head. {description} Kawaii anime style, vibrant colors, cute pose, simple background.",
+    promptTemplate: "Transform the person in the reference image into a chibi character, maintaining their distinctive features and outfit/clothing style. Create with huge eyes, tiny body, and oversized head. {description} Kawaii anime style, vibrant colors, cute pose, simple background.",
     examplePrompt: "Transform this person into a chibi warrior knight with oversized helmet.",
     icon: Sticker
   },
@@ -25,7 +25,7 @@ export const GENERATORS: GeneratorType[] = [
     id: "cartoon",
     name: "Realistic Cartoon",
     description: "Transform into a Pixar-style character with realistic features!",
-    promptTemplate: "Transform the person in the reference image into a semi-realistic cartoon portrait. {description} Pixar-meets-reality style with big expressive features but realistic lighting and textures.",
+    promptTemplate: "Transform the person in the reference image into a semi-realistic cartoon portrait, keeping their facial features, hairstyle, and outfit/clothing exactly as shown. {description} Pixar-meets-reality style with big expressive features but realistic lighting and textures.",
     examplePrompt: "Transform this person into a Pixar-style character on a beach at golden hour.",
     icon: Image
   },
@@ -33,7 +33,7 @@ export const GENERATORS: GeneratorType[] = [
     id: "pixel",
     name: "Pixel Pet",
     description: "Create your own Tamagotchi-inspired pixel pet!",
-    promptTemplate: "Transform the person in the reference image into a pixel art Tamagotchi-style pet. {description} Retro pixel style, simple animation frame, inside a vintage handheld game screen.",
+    promptTemplate: "Transform the person in the reference image into a pixel art Tamagotchi-style pet, incorporating their distinctive features and outfit/clothing colors into the design. {description} Retro pixel style, simple animation frame, inside a vintage handheld game screen.",
     examplePrompt: "Transform this person into a pixel art pet bouncing happily inside a retro game screen.",
     icon: Egg
   },
@@ -41,7 +41,7 @@ export const GENERATORS: GeneratorType[] = [
     id: "plush",
     name: "Plush Toy",
     description: "Transform into an adorable plush toy!",
-    promptTemplate: "Transform the person in the reference image into a photorealistic plush toy. {description} Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
+    promptTemplate: "Transform the person in the reference image into a photorealistic plush toy, maintaining their outfit/clothing colors and style in plush form. {description} Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
     examplePrompt: "Transform this person into a cute plush toy with soft fabric texture.",
     icon: Gift
   }
