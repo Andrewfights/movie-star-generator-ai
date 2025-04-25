@@ -60,12 +60,13 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Convert the image to base64
-      const base64Image = await convertFileToBase64(selectedFile);
+      // Get the image as a data URL
+      const imageDataUrl = await readFileAsDataURL(selectedFile);
       
-      // Call OpenAI API to generate image
+      // Create the prompt including user's genre
       const prompt = `Create a movie poster in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate title, tagline, and visual effects for the ${selectedGenre} genre.`;
       
+      // Call OpenAI API to generate image
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -81,7 +82,6 @@ const MoviePosterGenerator = () => {
           quality: "hd",
           style: "vivid",
           user: "movieposter-app-user",
-          image: base64Image, // Include the reference image
         })
       });
 
@@ -115,17 +115,12 @@ const MoviePosterGenerator = () => {
     }
   };
 
-  const convertFileToBase64 = (file: File): Promise<string> => {
+  // Helper function to read file as data URL
+  const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => {
-        // Extract the base64 data from the result
-        const base64String = reader.result as string;
-        // Remove the initial data:image/jpeg;base64, part to get just the base64 data
-        const base64Data = base64String.split(',')[1];
-        resolve(base64Data);
-      };
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = error => reject(error);
     });
   };
