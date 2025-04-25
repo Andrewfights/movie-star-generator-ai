@@ -42,22 +42,32 @@ const MoviePosterGenerator = () => {
     try {
       const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
+      // Create request body based on the selected model
+      let requestBody: any = {
+        model: selectedModel,
+        prompt: prompt,
+        n: 1,
+        quality: "hd",
+        style: "vivid",
+        user: "movieposter-app-user",
+      };
+      
+      // Add model-specific parameters
+      if (selectedModel === "dall-e-3") {
+        requestBody.size = "1024x1792";
+        requestBody.response_format = "url";
+      } else if (selectedModel === "gpt-image-1") {
+        // gpt-image-1 doesn't support response_format parameter
+        requestBody.size = "1024x1024";
+      }
+      
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        body: JSON.stringify({
-          model: selectedModel,
-          prompt: prompt,
-          n: 1,
-          size: selectedModel === "dall-e-3" ? "1024x1792" : "1024x1024",
-          response_format: "url",
-          quality: "hd",
-          style: "vivid",
-          user: "movieposter-app-user",
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
