@@ -187,90 +187,155 @@ const ImageGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const prompt = buildPrompt();
+      const reader = new FileReader();
       
-      const requestBody = {
-        model: selectedModel,
-        prompt: prompt,
-        n: 1,
-        user: "ai-image-generator-app-user",
-        size: getImageSize(aspectRatio),
-        quality: "high",
-      };
-      
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        let imageUrl;
-        if (data.data[0].b64_json) {
-          imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
-        } else if (data.data[0].url) {
-          imageUrl = data.data[0].url;
-        } else {
-          throw new Error("No image data found in the response");
-        }
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+        const prompt = buildPrompt();
         
-        setGeneratedImage(imageUrl);
-        
-        if (savedImages.length >= MAX_SAVED_IMAGES) {
-          setSavedImages(prev => {
-            const updatedImages = [...prev];
-            updatedImages.pop();
-            return updatedImages;
-          });
-          
-          toast({
-            title: "Storage limit reached",
-            description: `Removed oldest image to make space for your new ${generator.name.toLowerCase()}`,
-          });
-        }
-        
-        const compressedImageUrl = compressImageUrl(imageUrl);
-        
-        const newImage: SavedImage = {
-          id: `image-${Date.now()}`,
-          imageUrl: compressedImageUrl,
-          title: title || `${generator.name} ${new Date().toLocaleDateString()}`,
-          type: generator.id,
-          description: description,
-          aspectRatio: aspectRatio,
-          createdAt: new Date(),
-          model: selectedModel
+        const requestBody = {
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: "You are an AI that transforms people's photos into creative images following specific prompt instructions."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: prompt
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: base64Image
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 300
         };
         
-        setSavedImages(prev => [newImage, ...prev.slice(0, MAX_SAVED_IMAGES - 1)]);
-        
+        try {
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          const chatData = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(chatData.error?.message || 'Error analyzing the reference image');
+          }
+          
+          const enhancedPrompt = chatData.choices[0].message.content;
+          console.log("Enhanced prompt:", enhancedPrompt);
+          
+          const imageRequestBody = {
+            model: selectedModel,
+            prompt: enhancedPrompt,
+            n: 1,
+            user: "ai-image-generator-app-user",
+            size: getImageSize(aspectRatio),
+            quality: "high",
+          };
+          
+          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(imageRequestBody)
+          });
+
+          const imageData = await imageResponse.json();
+          
+          if (!imageResponse.ok) {
+            throw new Error(imageData.error?.message || 'Error generating image');
+          }
+          
+          let imageUrl;
+          if (imageData.data[0].b64_json) {
+            imageUrl = `data:image/png;base64,${imageData.data[0].b64_json}`;
+          } else if (imageData.data[0].url) {
+            imageUrl = imageData.data[0].url;
+          } else {
+            throw new Error("No image data found in the response");
+          }
+          
+          setGeneratedImage(imageUrl);
+          
+          if (savedImages.length >= MAX_SAVED_IMAGES) {
+            setSavedImages(prev => {
+              const updatedImages = [...prev];
+              updatedImages.pop();
+              return updatedImages;
+            });
+            
+            toast({
+              title: "Storage limit reached",
+              description: `Removed oldest image to make space for your new ${generator.name.toLowerCase()}`,
+            });
+          }
+          
+          const compressedImageUrl = compressImageUrl(imageUrl);
+          
+          const newImage: SavedImage = {
+            id: `image-${Date.now()}`,
+            imageUrl: compressedImageUrl,
+            title: title || `${generator.name} ${new Date().toLocaleDateString()}`,
+            type: generator.id,
+            description: description,
+            aspectRatio: aspectRatio,
+            createdAt: new Date(),
+            model: selectedModel
+          };
+          
+          setSavedImages(prev => [newImage, ...prev.slice(0, MAX_SAVED_IMAGES - 1)]);
+          
+          toast({
+            title: "Success!",
+            description: `Your ${generator.name.toLowerCase()} has been generated and saved`,
+          });
+        } catch (error) {
+          console.error("Error in API processing:", error);
+          toast({
+            title: "Generation failed",
+            description: error instanceof Error ? error.message : "Unknown error occurred",
+            variant: "destructive",
+          });
+        } finally {
+          setIsGenerating(false);
+        }
+      };
+      
+      reader.onerror = () => {
+        setIsGenerating(false);
         toast({
-          title: "Success!",
-          description: `Your ${generator.name.toLowerCase()} has been generated and saved`,
-        });
-      } else {
-        const errorMessage = data.error?.message || 'An error occurred during image generation';
-        toast({
-          title: "Generation failed",
-          description: errorMessage,
+          title: "Image processing failed",
+          description: "Could not process the selected image",
           variant: "destructive",
         });
-        console.error("OpenAI API error:", data);
-      }
+      };
+      
+      reader.readAsDataURL(selectedFile);
+      
     } catch (error) {
       console.error("Error generating image:", error);
+      setIsGenerating(false);
       toast({
         title: "Generation failed",
         description: "There was a problem connecting to the image generation service",
         variant: "destructive",
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 
