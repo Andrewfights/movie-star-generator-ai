@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { GeneratorType } from "@/types/generators";
@@ -16,32 +17,32 @@ export const GENERATORS: GeneratorType[] = [
     id: "chibi",
     name: "Chibi Character",
     description: "Turn yourself into an adorable chibi character!",
-    promptTemplate: "A chibi version of {description}, with huge eyes, tiny body, oversized head. Kawaii anime style, vibrant colors, cute pose, simple background.",
-    examplePrompt: "A chibi version of a warrior knight, oversized helmet, tiny sword, huge shiny eyes, bright blue armor, standing in a magical meadow.",
+    promptTemplate: "Transform the person in the reference image into a chibi character with huge eyes, tiny body, and oversized head. {description} Kawaii anime style, vibrant colors, cute pose, simple background.",
+    examplePrompt: "Transform this person into a chibi warrior knight with oversized helmet.",
     icon: Sticker
   },
   {
     id: "cartoon",
     name: "Realistic Cartoon",
     description: "Transform into a Pixar-style character with realistic features!",
-    promptTemplate: "A semi-realistic cartoon portrait of {description}. Pixar-meets-reality style with big expressive features but realistic lighting and textures.",
-    examplePrompt: "A semi-realistic cartoon portrait of a surfer boy, wavy blonde hair, tan skin, big expressive eyes, standing on a beach at golden hour.",
+    promptTemplate: "Transform the person in the reference image into a semi-realistic cartoon portrait. {description} Pixar-meets-reality style with big expressive features but realistic lighting and textures.",
+    examplePrompt: "Transform this person into a Pixar-style character on a beach at golden hour.",
     icon: Image
   },
   {
     id: "pixel",
     name: "Pixel Pet",
     description: "Create your own Tamagotchi-inspired pixel pet!",
-    promptTemplate: "A pixel art Tamagotchi-style pet of {description}. Retro pixel style, simple animation frame, inside a vintage handheld game screen.",
-    examplePrompt: "A pixel art tamagotchi-style dragon pet, bright red with tiny pixel fire breath, bouncing happily inside a retro 90s-style egg screen.",
+    promptTemplate: "Transform the person in the reference image into a pixel art Tamagotchi-style pet. {description} Retro pixel style, simple animation frame, inside a vintage handheld game screen.",
+    examplePrompt: "Transform this person into a pixel art pet bouncing happily inside a retro game screen.",
     icon: Egg
   },
   {
     id: "plush",
     name: "Plush Toy",
     description: "Transform into an adorable plush toy!",
-    promptTemplate: "A photorealistic plush toy of {description}. Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
-    examplePrompt: "A photorealistic plush toy of a baby otter, fluffy brown fur, stitched black nose, holding a tiny felt fish.",
+    promptTemplate: "Transform the person in the reference image into a photorealistic plush toy. {description} Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
+    examplePrompt: "Transform this person into a cute plush toy with soft fabric texture.",
     icon: Gift
   }
 ];
