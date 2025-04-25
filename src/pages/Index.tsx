@@ -1,8 +1,8 @@
 
-import MoviePosterGenerator from "@/components/MoviePosterGenerator";
+import ImageGenerator from "@/components/ImageGenerator";
 
 const Index = () => {
-  return <MoviePosterGenerator />;
+  return <ImageGenerator />;
 };
 
 export default Index;

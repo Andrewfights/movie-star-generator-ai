@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import ApiKeyInput from '../ApiKeyInput';
+import { ModelId, AspectRatioId } from '@/types/generators';
 
 const GENRES = [
   "Action",
@@ -16,19 +17,15 @@ const GENRES = [
   "Comedy"
 ] as const;
 
-const MODELS = [
-  { id: "dall-e-3", name: "DALL-E 3", ratio: "1024x1792" },
-  { id: "gpt-image-1", name: "GPT-image-1", ratio: "1024x1024" }
+export const MODELS = [
+  { id: "gpt-image-1" as ModelId, name: "GPT-image-1", ratio: "1024x1024" }
 ] as const;
 
-const ASPECT_RATIOS = [
+export const ASPECT_RATIOS = [
   { id: "1:1", name: "Square (1:1)", size: "1024x1024" },
   { id: "2:3", name: "Portrait (2:3)", size: "1024x1536" },
   { id: "3:2", name: "Landscape (3:2)", size: "1536x1024" },
 ] as const;
-
-export type ModelId = typeof MODELS[number]["id"];
-export type AspectRatioId = typeof ASPECT_RATIOS[number]["id"];
 
 interface ImageUploadFormProps {
   onFileSelect: (file: File) => void;
@@ -48,6 +45,9 @@ interface ImageUploadFormProps {
   selectedFile: File | null;
   apiKey: string;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  generatorId: string;
+  showGenreSelector?: boolean;
+  showTitleInput?: boolean;
 }
 
 const ImageUploadForm = ({
@@ -68,6 +68,9 @@ const ImageUploadForm = ({
   selectedFile,
   apiKey,
   fileInputRef,
+  generatorId,
+  showGenreSelector = true,
+  showTitleInput = true,
 }: ImageUploadFormProps) => {
   const { toast } = useToast();
 
@@ -85,6 +88,23 @@ const ImageUploadForm = ({
       }
     }
   };
+
+  const buttonText = () => {
+    if (isGenerating) return "Generating...";
+    
+    switch (generatorId) {
+      case "movie-poster": return "Generate My Movie Poster";
+      case "chibi": return "Generate Chibi Character";
+      case "cartoon": return "Generate Cartoon Portrait";
+      case "pixel": return "Generate Pixel Pet";
+      case "plush": return "Generate Plush Toy";
+      default: return "Generate Image";
+    }
+  };
+
+  const isButtonDisabled = isGenerating || !selectedFile || !apiKey || !description.trim() || !aspectRatio || 
+    (showGenreSelector && !selectedGenre) || 
+    (showTitleInput && !movieTitle.trim());
 
   return (
     <div className="space-y-6">
@@ -113,16 +133,18 @@ const ImageUploadForm = ({
           </div>
         </label>
 
-        <Input
-          type="text"
-          placeholder="Enter your movie title"
-          value={movieTitle}
-          onChange={(e) => setMovieTitle(e.target.value)}
-          className="w-full bg-gray-900 border-gray-800"
-        />
+        {showTitleInput && (
+          <Input
+            type="text"
+            placeholder="Enter a title"
+            value={movieTitle}
+            onChange={(e) => setMovieTitle(e.target.value)}
+            className="w-full bg-gray-900 border-gray-800"
+          />
+        )}
 
         <Textarea
-          placeholder="Enter a description for your movie poster"
+          placeholder={`Enter a description for your ${generatorId === "movie-poster" ? "movie poster" : "image"}`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full bg-gray-900 border-gray-800 min-h-[100px]"
@@ -154,25 +176,27 @@ const ImageUploadForm = ({
           </SelectContent>
         </Select>
 
-        <Select onValueChange={setSelectedGenre} value={selectedGenre}>
-          <SelectTrigger className="w-full bg-gray-900 border-gray-800">
-            <SelectValue placeholder="Choose a genre" />
-          </SelectTrigger>
-          <SelectContent>
-            {GENRES.map((genre) => (
-              <SelectItem key={genre} value={genre}>
-                {genre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showGenreSelector && (
+          <Select onValueChange={setSelectedGenre} value={selectedGenre}>
+            <SelectTrigger className="w-full bg-gray-900 border-gray-800">
+              <SelectValue placeholder="Choose a genre" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENRES.map((genre) => (
+                <SelectItem key={genre} value={genre}>
+                  {genre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         <Button
           className="w-full"
           onClick={onGenerate}
-          disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio}
+          disabled={isButtonDisabled}
         >
-          {isGenerating ? "Generating..." : "Generate My Movie Poster"}
+          {buttonText()}
         </Button>
       </div>
     </div>

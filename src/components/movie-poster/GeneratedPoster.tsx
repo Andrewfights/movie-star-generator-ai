@@ -1,15 +1,16 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { Download } from "lucide-react";
 
-interface GeneratedPosterProps {
+interface GeneratedImageProps {
   imageUrl: string;
   onDownload: () => void;
   onReset: () => void;
+  generatorId?: string;
 }
 
-const GeneratedPoster = ({ imageUrl, onDownload, onReset }: GeneratedPosterProps) => {
+const GeneratedImage = ({ imageUrl, onDownload, onReset, generatorId = "image" }: GeneratedImageProps) => {
   if (!imageUrl) return null;
 
   return (
@@ -17,7 +18,7 @@ const GeneratedPoster = ({ imageUrl, onDownload, onReset }: GeneratedPosterProps
       <div className="aspect-[2/3] relative bg-gray-900 rounded-lg overflow-hidden shadow-lg border border-gray-800">
         <img
           src={imageUrl}
-          alt="Generated movie poster"
+          alt={`Generated ${generatorId}`}
           className="w-full h-full object-contain"
           onError={(e) => {
             console.error("Image failed to load:", imageUrl);
@@ -30,8 +31,8 @@ const GeneratedPoster = ({ imageUrl, onDownload, onReset }: GeneratedPosterProps
           onClick={onDownload}
           variant="secondary"
         >
-          <ArrowDown className="mr-2 h-4 w-4" />
-          Download Poster
+          <Download className="mr-2 h-4 w-4" />
+          Download
         </Button>
         <Button
           onClick={onReset}
@@ -44,4 +45,4 @@ const GeneratedPoster = ({ imageUrl, onDownload, onReset }: GeneratedPosterProps
   );
 };
 
-export default GeneratedPoster;
+export default GeneratedImage;
