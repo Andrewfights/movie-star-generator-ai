@@ -1,10 +1,23 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
 import ImagePreview from './movie-poster/ImagePreview';
 import GeneratedPoster from './movie-poster/GeneratedPoster';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Download, Trash2 } from "lucide-react";
 import type { ModelId } from './movie-poster/ImageUploadForm';
+
+interface SavedPoster {
+  id: string;
+  imageUrl: string;
+  title: string;
+  genre: string;
+  createdAt: Date;
+  model: ModelId;
+}
 
 const MoviePosterGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,8 +28,34 @@ const MoviePosterGenerator = () => {
   const [apiKey, setApiKey] = useState<string>("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<ModelId>("dall-e-3");
+  const [savedPosters, setSavedPosters] = useState<SavedPoster[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved posters from localStorage on component mount
+  useEffect(() => {
+    const savedPostersData = localStorage.getItem('savedPosters');
+    if (savedPostersData) {
+      try {
+        const parsedData = JSON.parse(savedPostersData);
+        // Convert string dates back to Date objects
+        const posters = parsedData.map((poster: any) => ({
+          ...poster,
+          createdAt: new Date(poster.createdAt)
+        }));
+        setSavedPosters(posters);
+      } catch (error) {
+        console.error("Error loading saved posters:", error);
+      }
+    }
+  }, []);
+
+  // Save posters to localStorage whenever the savedPosters state changes
+  useEffect(() => {
+    if (savedPosters.length > 0) {
+      localStorage.setItem('savedPosters', JSON.stringify(savedPosters));
+    }
+  }, [savedPosters]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -90,9 +129,22 @@ const MoviePosterGenerator = () => {
         }
         
         setGeneratedImage(imageUrl);
+        
+        // Save the generated poster automatically
+        const newPoster: SavedPoster = {
+          id: `poster-${Date.now()}`,
+          imageUrl: imageUrl,
+          title: movieTitle,
+          genre: selectedGenre,
+          createdAt: new Date(),
+          model: selectedModel
+        };
+        
+        setSavedPosters(prev => [newPoster, ...prev]);
+        
         toast({
           title: "Success!",
-          description: "Your movie poster has been generated",
+          description: "Your movie poster has been generated and saved",
         });
       } else {
         const errorMessage = data.error?.message || 'An error occurred during image generation';
@@ -115,11 +167,11 @@ const MoviePosterGenerator = () => {
     }
   };
 
-  const handleDownload = () => {
-    if (generatedImage) {
+  const handleDownload = (imageUrl: string, title: string) => {
+    if (imageUrl) {
       const link = document.createElement('a');
-      link.href = generatedImage;
-      link.download = 'movie-poster.png';
+      link.href = imageUrl;
+      link.download = `${title.replace(/\s+/g, '-').toLowerCase()}-movie-poster.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -137,10 +189,28 @@ const MoviePosterGenerator = () => {
     setFilePreview(null);
     setSelectedGenre("");
   };
+  
+  const handleDeletePoster = (posterId: string) => {
+    setSavedPosters(prev => prev.filter(poster => poster.id !== posterId));
+    toast({
+      title: "Poster deleted",
+      description: "The poster has been removed from your saved posters",
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
 
   return (
     <div className="min-h-screen p-4 bg-gray-950 text-white animate-fade-in">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <header className="text-center space-y-4">
           <h1 className="text-4xl font-bold tracking-tight">
             Become the Star of Your Own Movie!
@@ -150,32 +220,99 @@ const MoviePosterGenerator = () => {
           </p>
         </header>
 
-        <ImageUploadForm
-          onFileSelect={handleFileSelect}
-          onGenerate={handleGenerate}
-          onApiKeySet={setApiKey}
-          setMovieTitle={setMovieTitle}
-          setSelectedGenre={setSelectedGenre}
-          setSelectedModel={setSelectedModel}
-          movieTitle={movieTitle}
-          selectedGenre={selectedGenre}
-          selectedModel={selectedModel}
-          isGenerating={isGenerating}
-          selectedFile={selectedFile}
-          apiKey={apiKey}
-          fileInputRef={fileInputRef}
-        />
+        <Tabs defaultValue="create" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create">Create New Poster</TabsTrigger>
+            <TabsTrigger value="gallery">Saved Posters ({savedPosters.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="create" className="space-y-8 mt-4">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <ImageUploadForm
+                  onFileSelect={handleFileSelect}
+                  onGenerate={handleGenerate}
+                  onApiKeySet={setApiKey}
+                  setMovieTitle={setMovieTitle}
+                  setSelectedGenre={setSelectedGenre}
+                  setSelectedModel={setSelectedModel}
+                  movieTitle={movieTitle}
+                  selectedGenre={selectedGenre}
+                  selectedModel={selectedModel}
+                  isGenerating={isGenerating}
+                  selectedFile={selectedFile}
+                  apiKey={apiKey}
+                  fileInputRef={fileInputRef}
+                />
 
-        <ImagePreview
-          filePreview={filePreview}
-          selectedFileName={selectedFile?.name}
-        />
-
-        <GeneratedPoster
-          imageUrl={generatedImage}
-          onDownload={handleDownload}
-          onReset={handleReset}
-        />
+                <ImagePreview
+                  filePreview={filePreview}
+                  selectedFileName={selectedFile?.name}
+                />
+              </div>
+              
+              <div>
+                <GeneratedPoster
+                  imageUrl={generatedImage}
+                  onDownload={() => handleDownload(generatedImage, movieTitle)}
+                  onReset={handleReset}
+                />
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="gallery" className="mt-4">
+            {savedPosters.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400">No posters saved yet. Generate some posters to see them here!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {savedPosters.map((poster) => (
+                  <Card key={poster.id} className="bg-gray-900 border-gray-800">
+                    <CardContent className="p-4 space-y-4">
+                      <div className="aspect-[2/3] relative bg-gray-800 rounded-lg overflow-hidden">
+                        <img
+                          src={poster.imageUrl}
+                          alt={`Movie poster for ${poster.title}`}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{poster.title}</h3>
+                        <p className="text-sm text-gray-400">{poster.genre} • {poster.model}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatDate(poster.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => handleDownload(poster.imageUrl, poster.title)}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeletePoster(poster.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
