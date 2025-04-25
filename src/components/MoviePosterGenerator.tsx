@@ -15,6 +15,11 @@ const GENRES = [
   "Comedy"
 ];
 
+const MODELS = [
+  { id: "dall-e-3", name: "DALL-E 3", ratio: "1024x1792" },
+  { id: "gpt-4-vision-preview", name: "GPT-4 Vision", ratio: "1024x1024" }
+] as const;
+
 const MoviePosterGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -23,6 +28,7 @@ const MoviePosterGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<typeof MODELS[number]["id"]>("dall-e-3");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,10 +75,10 @@ const MoviePosterGenerator = () => {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "dall-e-3",
+          model: selectedModel,
           prompt: prompt,
           n: 1,
-          size: "1024x1792",
+          size: MODELS.find(m => m.id === selectedModel)?.ratio,
           response_format: "url",
           quality: "hd",
           style: "vivid",
@@ -132,6 +138,7 @@ const MoviePosterGenerator = () => {
   const handleReset = () => {
     setGeneratedImage("");
     setMovieTitle("");
+    setSelectedModel("dall-e-3");
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -198,6 +205,19 @@ const MoviePosterGenerator = () => {
               onChange={(e) => setMovieTitle(e.target.value)}
               className="w-full bg-gray-900 border-gray-800"
             />
+
+            <Select onValueChange={setSelectedModel} value={selectedModel}>
+              <SelectTrigger className="w-full bg-gray-900 border-gray-800">
+                <SelectValue placeholder="Choose an AI model" />
+              </SelectTrigger>
+              <SelectContent>
+                {MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Select onValueChange={setSelectedGenre} value={selectedGenre}>
               <SelectTrigger className="w-full bg-gray-900 border-gray-800">
