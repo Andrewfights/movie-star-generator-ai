@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDown } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ApiKeyInput from './ApiKeyInput';
 
 const GENRES = [
   "Action",
@@ -19,6 +20,7 @@ const MoviePosterGenerator = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [apiKey, setApiKey] = useState<string>("");
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,17 +39,17 @@ const MoviePosterGenerator = () => {
   };
 
   const handleGenerate = async () => {
-    if (!selectedFile || !selectedGenre) {
+    if (!selectedFile || !selectedGenre || !apiKey) {
       toast({
         title: "Missing information",
-        description: "Please upload a photo and select a genre",
+        description: "Please upload a photo, select a genre, and provide an API key",
         variant: "destructive",
       });
       return;
     }
 
     setIsGenerating(true);
-    // TODO: Implement actual API call here
+    // TODO: Implement actual API call here using apiKey
     // For now, we'll just simulate a delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     setGeneratedImage("/placeholder.svg");
@@ -78,6 +80,8 @@ const MoviePosterGenerator = () => {
         </header>
 
         <div className="space-y-6">
+          <ApiKeyInput onKeySet={setApiKey} />
+          
           <div className="space-y-4">
             <label
               htmlFor="photo-upload"
@@ -122,7 +126,7 @@ const MoviePosterGenerator = () => {
             <Button
               className="w-full"
               onClick={handleGenerate}
-              disabled={isGenerating || !selectedFile || !selectedGenre}
+              disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey}
             >
               {isGenerating ? "Generating..." : "Generate My Movie Poster"}
             </Button>
