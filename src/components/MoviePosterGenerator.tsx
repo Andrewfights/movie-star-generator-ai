@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
@@ -80,6 +79,18 @@ const MoviePosterGenerator = () => {
     }
   };
 
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleGenerate = async () => {
     if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio) {
       toast({
@@ -93,6 +104,7 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
+      const base64Image = await convertImageToBase64(selectedFile);
       const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. The description is: ${description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
       let requestBody: any = {
@@ -100,11 +112,12 @@ const MoviePosterGenerator = () => {
         prompt: prompt,
         n: 1,
         user: "movieposter-app-user",
+        reference_image: base64Image
       };
       
       if (selectedModel === "gpt-image-1") {
         requestBody.size = getImageSize(aspectRatio);
-        requestBody.quality = "high"; // Changed from "high" to ensure consistency
+        requestBody.quality = "high";
       }
       
       const response = await fetch('https://api.openai.com/v1/images/generations', {
