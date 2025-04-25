@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,13 +26,11 @@ const ImageGenerator = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved images from localStorage on component mount
   useEffect(() => {
     const savedImagesData = localStorage.getItem('savedImages');
     if (savedImagesData) {
       try {
         const parsedData = JSON.parse(savedImagesData);
-        // Convert string dates back to Date objects
         const images = parsedData.map((image: any) => ({
           ...image,
           createdAt: new Date(image.createdAt)
@@ -45,7 +42,6 @@ const ImageGenerator = () => {
     }
   }, []);
 
-  // Save images to localStorage whenever the savedImages state changes
   useEffect(() => {
     if (savedImages.length > 0) {
       localStorage.setItem('savedImages', JSON.stringify(savedImages));
@@ -86,7 +82,6 @@ const ImageGenerator = () => {
   const handleGenerate = async () => {
     const generator = getCurrentGenerator();
     
-    // Validate inputs based on generator type
     if (!selectedFile || !apiKey || !description.trim() || !aspectRatio) {
       toast({
         title: "Missing information",
@@ -96,7 +91,6 @@ const ImageGenerator = () => {
       return;
     }
     
-    // Additional validation for movie posters
     if (generator.id === "movie-poster" && (!selectedGenre || !title.trim())) {
       toast({
         title: "Missing information",

@@ -7,7 +7,7 @@ import {
   Film, 
   Image, 
   Egg, 
-  Toys 
+  Gift
 } from "lucide-react";
 
 export const GENERATORS: GeneratorType[] = [
@@ -49,7 +49,7 @@ export const GENERATORS: GeneratorType[] = [
     description: "Transform into an adorable plush toy!",
     promptTemplate: "A photorealistic plush toy of {description}. Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
     examplePrompt: "A photorealistic plush toy of a baby otter, fluffy brown fur, stitched black nose, holding a tiny felt fish.",
-    icon: Toys
+    icon: Gift
   }
 ];
 
@@ -65,7 +65,7 @@ const GeneratorSelector: React.FC<GeneratorSelectorProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
       {GENERATORS.map((generator) => {
-        const Icon = generator.icon || Image;
+        const IconComponent = generator.icon || Image;
         return (
           <Card 
             key={generator.id}
@@ -77,7 +77,7 @@ const GeneratorSelector: React.FC<GeneratorSelectorProps> = ({
             onClick={() => onSelectGenerator(generator.id)}
           >
             <CardContent className="p-4 flex flex-col items-center text-center">
-              <Icon className="h-8 w-8 mb-2" />
+              <IconComponent className="h-8 w-8 mb-2" />
               <h3 className="font-medium">{generator.name}</h3>
               <p className="text-xs mt-1 opacity-80">{generator.description}</p>
             </CardContent>

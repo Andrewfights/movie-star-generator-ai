@@ -15,7 +15,7 @@ export interface GeneratorType {
   description: string;
   promptTemplate: string;
   examplePrompt: string;
-  icon?: React.ElementRef<any>;
+  icon?: React.ElementType;
 }
 
 export interface SavedImage {

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
@@ -8,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
-import type { ModelId, AspectRatioId } from './movie-poster/ImageUploadForm';
+import { ModelId, AspectRatioId } from '@/types/generators';
 
 interface SavedPoster {
   id: string;
@@ -36,13 +35,11 @@ const MoviePosterGenerator = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved posters from localStorage on component mount
   useEffect(() => {
     const savedPostersData = localStorage.getItem('savedPosters');
     if (savedPostersData) {
       try {
         const parsedData = JSON.parse(savedPostersData);
-        // Convert string dates back to Date objects
         const posters = parsedData.map((poster: any) => ({
           ...poster,
           createdAt: new Date(poster.createdAt)
@@ -54,7 +51,6 @@ const MoviePosterGenerator = () => {
     }
   }, []);
 
-  // Save posters to localStorage whenever the savedPosters state changes
   useEffect(() => {
     if (savedPosters.length > 0) {
       localStorage.setItem('savedPosters', JSON.stringify(savedPosters));
@@ -259,6 +255,7 @@ const MoviePosterGenerator = () => {
                   selectedFile={selectedFile}
                   apiKey={apiKey}
                   fileInputRef={fileInputRef}
+                  generatorId="movie-poster"
                 />
 
                 <ImagePreview
