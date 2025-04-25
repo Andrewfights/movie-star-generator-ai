@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { GeneratorType } from "@/types/generators";
-import { Film, Image, Sticker, Egg, Gift } from "lucide-react";
+import { Film, Image, Sticker, Egg, Gift, Box } from "lucide-react";
 
 export const GENERATORS: GeneratorType[] = [
   {
@@ -44,6 +43,14 @@ export const GENERATORS: GeneratorType[] = [
     promptTemplate: "Transform the person in the reference image into a photorealistic plush toy, maintaining their outfit/clothing colors and style in plush form. {description} Soft fuzzy fabric, stitched details, sitting on a white background with soft lighting.",
     examplePrompt: "Transform this person into a cute plush toy with soft fabric texture.",
     icon: Gift
+  },
+  {
+    id: "bubble-toy",
+    name: "Bubble Toy Box",
+    description: "Transform into an adorable bubble toy in a clear display box!",
+    promptTemplate: "Create a soft focus photograph of a pastel-colored bubble toy inside a clear acrylic box, arranged with other similar toys. Transform the person from the reference image into a small, round, shiny, and smooth bubble toy with a cute minimal cartoon face, maintaining their distinctive features and outfit/clothing colors. {description} Studio lighting with gentle reflections on the acrylic surface, dreamy and polished aesthetic with a softly blurred background highlighting the toys' glossy surfaces. The bubble toy should clearly represent the person's appearance and outfit from the reference image in a cute, miniaturized form.",
+    examplePrompt: "Transform this person into a cute bubble toy in an acrylic display box.",
+    icon: Box
   }
 ];
 
