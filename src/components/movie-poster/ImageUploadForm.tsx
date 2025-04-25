@@ -107,16 +107,17 @@ const ImageUploadForm = ({
     (showTitleInput && !movieTitle.trim());
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ApiKeyInput onKeySet={onApiKeySet} />
       
-      <div className="space-y-4">
-        <label
-          htmlFor="photo-upload"
-          className="block p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-gray-500 transition-colors cursor-pointer"
-        >
-          <div className="text-center">
-            <div className="mt-2">
+      <div className="space-y-6">
+        <div>
+          <p className="step-label">① Upload Your Image</p>
+          <label
+            htmlFor="photo-upload"
+            className="block p-8 border-2 border-dashed border-white/10 rounded-xl hover:border-primary/50 transition-colors cursor-pointer bg-secondary/50"
+          >
+            <div className="text-center">
               <input
                 id="photo-upload"
                 name="photo-upload"
@@ -126,73 +127,90 @@ const ImageUploadForm = ({
                 accept="image/*"
                 ref={fileInputRef}
               />
-              <p className="text-sm text-gray-400">
+              <p className="text-base text-muted-foreground">
                 Click to upload or drag and drop
               </p>
             </div>
-          </div>
-        </label>
+          </label>
+        </div>
 
         {showTitleInput && (
-          <Input
-            type="text"
-            placeholder="Enter a title"
-            value={movieTitle}
-            onChange={(e) => setMovieTitle(e.target.value)}
-            className="w-full bg-gray-900 border-gray-800"
-          />
+          <div>
+            <p className="step-label">② Enter Title</p>
+            <Input
+              type="text"
+              placeholder="Enter a title"
+              value={movieTitle}
+              onChange={(e) => setMovieTitle(e.target.value)}
+              className="form-input w-full"
+            />
+          </div>
         )}
 
-        <Textarea
-          placeholder={`Enter a description for your ${generatorId === "movie-poster" ? "movie poster" : "image"}`}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full bg-gray-900 border-gray-800 min-h-[100px]"
-        />
+        <div>
+          <p className="step-label">{showTitleInput ? "③" : "②"} Add Description</p>
+          <Textarea
+            placeholder={`Describe your ${generatorId === "movie-poster" ? "movie poster" : "image"}`}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="form-input w-full min-h-[100px]"
+          />
+        </div>
 
-        <Select onValueChange={(value: ModelId) => setSelectedModel(value)} value={selectedModel}>
-          <SelectTrigger className="w-full bg-gray-900 border-gray-800">
-            <SelectValue placeholder="Choose an AI model" />
-          </SelectTrigger>
-          <SelectContent>
-            {MODELS.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="step-label">{showTitleInput ? "④" : "③"} Choose Model</p>
+            <Select onValueChange={(value: ModelId) => setSelectedModel(value)} value={selectedModel}>
+              <SelectTrigger className="form-input w-full">
+                <SelectValue placeholder="Choose an AI model" />
+              </SelectTrigger>
+              <SelectContent>
+                {MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Select onValueChange={(value: AspectRatioId) => setAspectRatio(value)} value={aspectRatio}>
-          <SelectTrigger className="w-full bg-gray-900 border-gray-800">
-            <SelectValue placeholder="Choose aspect ratio" />
-          </SelectTrigger>
-          <SelectContent>
-            {ASPECT_RATIOS.map((ratio) => (
-              <SelectItem key={ratio.id} value={ratio.id}>
-                {ratio.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <div>
+            <p className="step-label">Choose Aspect Ratio</p>
+            <Select onValueChange={(value: AspectRatioId) => setAspectRatio(value)} value={aspectRatio}>
+              <SelectTrigger className="form-input w-full">
+                <SelectValue placeholder="Choose aspect ratio" />
+              </SelectTrigger>
+              <SelectContent>
+                {ASPECT_RATIOS.map((ratio) => (
+                  <SelectItem key={ratio.id} value={ratio.id}>
+                    {ratio.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {showGenreSelector && (
-          <Select onValueChange={setSelectedGenre} value={selectedGenre}>
-            <SelectTrigger className="w-full bg-gray-900 border-gray-800">
-              <SelectValue placeholder="Choose a genre" />
-            </SelectTrigger>
-            <SelectContent>
-              {GENRES.map((genre) => (
-                <SelectItem key={genre} value={genre}>
-                  {genre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div>
+            <p className="step-label">⑤ Select Genre</p>
+            <Select onValueChange={setSelectedGenre} value={selectedGenre}>
+              <SelectTrigger className="form-input w-full">
+                <SelectValue placeholder="Choose a genre" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENRES.map((genre) => (
+                  <SelectItem key={genre} value={genre}>
+                    {genre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
         <Button
-          className="w-full"
+          className="w-full h-14 text-lg font-medium bg-primary hover:bg-primary/90"
           onClick={onGenerate}
           disabled={isButtonDisabled}
         >

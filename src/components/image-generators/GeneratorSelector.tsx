@@ -1,14 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { GeneratorType } from "@/types/generators";
-import { 
-  Sticker, 
-  Film, 
-  Image, 
-  Egg, 
-  Gift
-} from "lucide-react";
+import { Film, Image, Sticker, Egg, Gift } from "lucide-react";
 
 export const GENERATORS: GeneratorType[] = [
   {
@@ -63,23 +56,23 @@ const GeneratorSelector: React.FC<GeneratorSelectorProps> = ({
   onSelectGenerator 
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
       {GENERATORS.map((generator) => {
         const IconComponent = generator.icon || Image;
         return (
           <Card 
             key={generator.id}
-            className={`cursor-pointer transition-all ${
+            className={`generator-card cursor-pointer ${
               selectedGenerator === generator.id 
-                ? 'bg-primary border-primary text-primary-foreground' 
-                : 'bg-gray-900 hover:bg-gray-800 border-gray-800'
+                ? 'bg-primary border-primary/50 text-primary-foreground' 
+                : 'bg-card hover:bg-secondary border-white/5'
             }`}
             onClick={() => onSelectGenerator(generator.id)}
           >
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <IconComponent className="h-8 w-8 mb-2" />
-              <h3 className="font-medium">{generator.name}</h3>
-              <p className="text-xs mt-1 opacity-80">{generator.description}</p>
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <IconComponent className="h-10 w-10 mb-2" />
+              <h3 className="font-semibold text-lg">{generator.name}</h3>
+              <p className="text-sm text-muted-foreground">{generator.description}</p>
             </CardContent>
           </Card>
         );
