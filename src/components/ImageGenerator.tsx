@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Image, Folder } from "lucide-react";
 import ImageUploadForm, { ASPECT_RATIOS } from './movie-poster/ImageUploadForm';
 import ImagePreview from './movie-poster/ImagePreview';
 import GeneratedImage from './movie-poster/GeneratedPoster';
@@ -393,53 +393,89 @@ const ImageGenerator = () => {
   const generator = getCurrentGenerator();
 
   return (
-    <div className="min-h-screen p-4 bg-gray-950 text-white animate-fade-in">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <header className="text-center space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight">
+    <div className="min-h-screen p-4 bg-[#1a1a1a] text-white animate-fade-in">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <header className="text-center space-y-2 mb-8">
+          <h1 className="text-4xl font-bold tracking-tight text-gradient">
             AI Image Generator
           </h1>
-          <p className="text-gray-400">
+          <p className="text-lg text-gray-400 tracking-wide">
             Create amazing AI-generated images with your photos
           </p>
         </header>
 
-        <GeneratorSelector 
-          selectedGenerator={selectedGenerator}
-          onSelectGenerator={handleGeneratorChange}
-        />
+        <div className="grid grid-cols-6 gap-4 mb-8">
+          {GENERATORS.map((generator) => {
+            const IconComponent = generator.icon || Image;
+            return (
+              <Card 
+                key={generator.id}
+                className={`generator-card cursor-pointer ${
+                  selectedGenerator === generator.id 
+                    ? 'bg-primary/20 border-primary/50 text-primary-foreground shadow-lg shadow-primary/20' 
+                    : 'hover:bg-black/40'
+                }`}
+                onClick={() => handleGeneratorChange(generator.id)}
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
+                  <IconComponent className="h-8 w-8 mb-2" />
+                  <h3 className="font-semibold text-base tracking-wide">{generator.name}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{generator.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
         <Tabs defaultValue="create" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="create">Create New {generator.name}</TabsTrigger>
-            <TabsTrigger value="gallery">Saved Images ({savedImages.length})</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 mb-6">
+            <TabsTrigger 
+              value="create" 
+              className="data-[state=active]:active-tab"
+            >
+              <div className="flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                Create New {getCurrentGenerator().name}
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="gallery"
+              className="data-[state=active]:active-tab"
+            >
+              <div className="flex items-center gap-2">
+                <Folder className="h-4 w-4" />
+                Saved Images ({savedImages.length})
+              </div>
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="create" className="space-y-8 mt-4">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <ImageUploadForm
-                  onFileSelect={handleFileSelect}
-                  onGenerate={handleGenerate}
-                  onApiKeySet={setApiKey}
-                  setMovieTitle={setTitle}
-                  setSelectedGenre={setSelectedGenre}
-                  setSelectedModel={setSelectedModel}
-                  setDescription={setDescription}
-                  setAspectRatio={setAspectRatio}
-                  movieTitle={title}
-                  selectedGenre={selectedGenre}
-                  selectedModel={selectedModel}
-                  description={description}
-                  aspectRatio={aspectRatio}
-                  isGenerating={isGenerating}
-                  selectedFile={selectedFile}
-                  apiKey={apiKey}
-                  fileInputRef={fileInputRef}
-                  generatorId={selectedGenerator}
-                  showGenreSelector={selectedGenerator === "movie-poster"}
-                  showTitleInput={selectedGenerator === "movie-poster"}
-                />
+          <TabsContent value="create" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="upload-zone">
+                  <ImageUploadForm
+                    onFileSelect={handleFileSelect}
+                    onGenerate={handleGenerate}
+                    onApiKeySet={setApiKey}
+                    setMovieTitle={setTitle}
+                    setSelectedGenre={setSelectedGenre}
+                    setSelectedModel={setSelectedModel}
+                    setDescription={setDescription}
+                    setAspectRatio={setAspectRatio}
+                    movieTitle={title}
+                    selectedGenre={selectedGenre}
+                    selectedModel={selectedModel}
+                    description={description}
+                    aspectRatio={aspectRatio}
+                    isGenerating={isGenerating}
+                    selectedFile={selectedFile}
+                    apiKey={apiKey}
+                    fileInputRef={fileInputRef}
+                    generatorId={selectedGenerator}
+                    showGenreSelector={selectedGenerator === "movie-poster"}
+                    showTitleInput={selectedGenerator === "movie-poster"}
+                  />
+                </div>
 
                 <ImagePreview
                   filePreview={filePreview}

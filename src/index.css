@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -42,14 +41,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#1a1a1a] text-foreground;
     font-family: 'Inter', sans-serif;
   }
 }
 
 @layer components {
   .generator-card {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/20;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/20 backdrop-blur-sm bg-black/30 border border-white/10;
   }
   
   .form-input {
@@ -58,6 +57,18 @@
   
   .step-label {
     @apply text-sm text-muted-foreground uppercase tracking-wider font-medium mb-2;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
+  }
+
+  .active-tab {
+    @apply bg-primary/10 text-primary border-b-2 border-primary;
+  }
+
+  .upload-zone {
+    @apply p-8 border-2 border-dashed border-white/20 rounded-xl hover:border-primary/50 transition-colors;
   }
 }
 
