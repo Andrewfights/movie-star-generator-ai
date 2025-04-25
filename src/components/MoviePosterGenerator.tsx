@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
 import { ModelId, AspectRatioId } from '@/types/generators';
 
+const MAX_SAVED_POSTERS = 10;
+
 interface SavedPoster {
   id: string;
   imageUrl: string;
@@ -36,26 +38,41 @@ const MoviePosterGenerator = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedPostersData = localStorage.getItem('savedPosters');
-    if (savedPostersData) {
+    const loadSavedPosters = () => {
       try {
-        const parsedData = JSON.parse(savedPostersData);
-        const posters = parsedData.map((poster: any) => ({
-          ...poster,
-          createdAt: new Date(poster.createdAt)
-        }));
-        setSavedPosters(posters);
+        const savedPostersData = localStorage.getItem('savedPosters');
+        if (savedPostersData) {
+          const parsedData = JSON.parse(savedPostersData);
+          const posters = parsedData.map((poster: any) => ({
+            ...poster,
+            createdAt: new Date(poster.createdAt)
+          }));
+          setSavedPosters(posters);
+        }
       } catch (error) {
         console.error("Error loading saved posters:", error);
+        setSavedPosters([]);
       }
-    }
+    };
+
+    loadSavedPosters();
   }, []);
 
   useEffect(() => {
     if (savedPosters.length > 0) {
-      localStorage.setItem('savedPosters', JSON.stringify(savedPosters));
+      try {
+        const postersToSave = savedPosters.slice(0, MAX_SAVED_POSTERS);
+        localStorage.setItem('savedPosters', JSON.stringify(postersToSave));
+      } catch (error) {
+        console.error("Error saving posters to localStorage:", error);
+        toast({
+          title: "Storage limit reached",
+          description: "Unable to save more posters. Try deleting some older posters.",
+          variant: "destructive",
+        });
+      }
     }
-  }, [savedPosters]);
+  }, [savedPosters, toast]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -94,7 +111,6 @@ const MoviePosterGenerator = () => {
     try {
       const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. The description is: ${description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
-      // Create proper request body without reference_image parameter
       let requestBody: any = {
         model: selectedModel,
         prompt: prompt,
@@ -130,6 +146,19 @@ const MoviePosterGenerator = () => {
         
         setGeneratedImage(imageUrl);
         
+        if (savedPosters.length >= MAX_SAVED_POSTERS) {
+          setSavedPosters(prev => {
+            const updatedPosters = [...prev];
+            updatedPosters.pop();
+            return updatedPosters;
+          });
+          
+          toast({
+            title: "Storage limit reached",
+            description: "Removed oldest poster to make space for your new one",
+          });
+        }
+        
         const newPoster: SavedPoster = {
           id: `poster-${Date.now()}`,
           imageUrl: imageUrl,
@@ -141,7 +170,7 @@ const MoviePosterGenerator = () => {
           model: selectedModel
         };
         
-        setSavedPosters(prev => [newPoster, ...prev]);
+        setSavedPosters(prev => [newPoster, ...prev.slice(0, MAX_SAVED_POSTERS - 1)]);
         
         toast({
           title: "Success!",

@@ -10,6 +10,8 @@ import GeneratedImage from './movie-poster/GeneratedPoster';
 import GeneratorSelector, { GENERATORS } from './image-generators/GeneratorSelector';
 import { ModelId, AspectRatioId, SavedImage } from '@/types/generators';
 
+const MAX_SAVED_IMAGES = 10;
+
 const ImageGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
@@ -27,26 +29,41 @@ const ImageGenerator = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedImagesData = localStorage.getItem('savedImages');
-    if (savedImagesData) {
+    const loadSavedImages = () => {
       try {
-        const parsedData = JSON.parse(savedImagesData);
-        const images = parsedData.map((image: any) => ({
-          ...image,
-          createdAt: new Date(image.createdAt)
-        }));
-        setSavedImages(images);
+        const savedImagesData = localStorage.getItem('savedImages');
+        if (savedImagesData) {
+          const parsedData = JSON.parse(savedImagesData);
+          const images = parsedData.map((image: any) => ({
+            ...image,
+            createdAt: new Date(image.createdAt)
+          }));
+          setSavedImages(images);
+        }
       } catch (error) {
         console.error("Error loading saved images:", error);
+        setSavedImages([]);
       }
-    }
+    };
+
+    loadSavedImages();
   }, []);
 
   useEffect(() => {
     if (savedImages.length > 0) {
-      localStorage.setItem('savedImages', JSON.stringify(savedImages));
+      try {
+        const imagesToSave = savedImages.slice(0, MAX_SAVED_IMAGES);
+        localStorage.setItem('savedImages', JSON.stringify(imagesToSave));
+      } catch (error) {
+        console.error("Error saving images to localStorage:", error);
+        toast({
+          title: "Storage limit reached",
+          description: "Unable to save more images. Try deleting some older images.",
+          variant: "destructive",
+        });
+      }
     }
-  }, [savedImages]);
+  }, [savedImages, toast]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -137,6 +154,19 @@ const ImageGenerator = () => {
         
         setGeneratedImage(imageUrl);
         
+        if (savedImages.length >= MAX_SAVED_IMAGES) {
+          setSavedImages(prev => {
+            const updatedImages = [...prev];
+            updatedImages.pop();
+            return updatedImages;
+          });
+          
+          toast({
+            title: "Storage limit reached",
+            description: `Removed oldest image to make space for your new ${generator.name.toLowerCase()}`,
+          });
+        }
+        
         const newImage: SavedImage = {
           id: `image-${Date.now()}`,
           imageUrl: imageUrl,
@@ -148,7 +178,7 @@ const ImageGenerator = () => {
           model: selectedModel
         };
         
-        setSavedImages(prev => [newImage, ...prev]);
+        setSavedImages(prev => [newImage, ...prev.slice(0, MAX_SAVED_IMAGES - 1)]);
         
         toast({
           title: "Success!",
