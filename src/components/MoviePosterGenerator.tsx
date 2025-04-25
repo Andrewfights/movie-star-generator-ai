@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadForm from './movie-poster/ImageUploadForm';
@@ -46,7 +47,6 @@ const MoviePosterGenerator = () => {
         model: selectedModel,
         prompt: prompt,
         n: 1,
-        quality: "standard", // Updated to a supported value
         user: "movieposter-app-user",
       };
       
@@ -55,8 +55,11 @@ const MoviePosterGenerator = () => {
         requestBody.size = "1024x1792";
         requestBody.response_format = "url";
         requestBody.style = "vivid"; // Only DALL-E 3 supports the style parameter
+        requestBody.quality = "standard"; // DALL-E 3 supports "standard" and "hd"
       } else if (selectedModel === "gpt-image-1") {
         requestBody.size = "1024x1024";
+        // GPT-image-1 supports "low", "medium", "high", and "auto" for quality
+        requestBody.quality = "high";
       }
       
       const response = await fetch('https://api.openai.com/v1/images/generations', {
