@@ -10,7 +10,8 @@ import GeneratedImage from './movie-poster/GeneratedPoster';
 import GeneratorSelector, { GENERATORS } from './image-generators/GeneratorSelector';
 import { ModelId, AspectRatioId, SavedImage } from '@/types/generators';
 
-const MAX_SAVED_IMAGES = 10;
+const MAX_SAVED_IMAGES = 5;
+const MAX_IMAGE_SIZE_KB = 300;
 
 const ImageGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,18 +50,82 @@ const ImageGenerator = () => {
     loadSavedImages();
   }, []);
 
+  const compressImageUrl = (imageUrl: string): string => {
+    if (!imageUrl.startsWith('data:image')) {
+      return imageUrl;
+    }
+    
+    try {
+      const canvas = document.createElement('canvas');
+      const img = new Image();
+      
+      img.onerror = () => {
+        console.error("Failed to process image for compression");
+      };
+      
+      const maxDim = 500;
+      
+      img.src = imageUrl;
+      
+      if (!img.complete || !img.naturalWidth) {
+        return imageUrl;
+      }
+      
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      
+      if (width > height) {
+        if (width > maxDim) {
+          height = Math.round(height * maxDim / width);
+          width = maxDim;
+        }
+      } else {
+        if (height > maxDim) {
+          width = Math.round(width * maxDim / height);
+          height = maxDim;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return imageUrl;
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      return canvas.toDataURL('image/jpeg', 0.7);
+    } catch (e) {
+      console.error("Error compressing image:", e);
+      return imageUrl;
+    }
+  };
+
   useEffect(() => {
     if (savedImages.length > 0) {
       try {
         const imagesToSave = savedImages.slice(0, MAX_SAVED_IMAGES);
-        localStorage.setItem('savedImages', JSON.stringify(imagesToSave));
+        
+        const processedImages = imagesToSave.map(image => ({
+          ...image,
+          imageUrl: compressImageUrl(image.imageUrl)
+        }));
+        
+        localStorage.setItem('savedImages', JSON.stringify(processedImages));
       } catch (error) {
         console.error("Error saving images to localStorage:", error);
-        toast({
-          title: "Storage limit reached",
-          description: "Unable to save more images. Try deleting some older images.",
-          variant: "destructive",
-        });
+        
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          toast({
+            title: "Storage limit reached",
+            description: "Removing oldest image due to storage constraints.",
+            variant: "destructive",
+          });
+          
+          if (savedImages.length > 1) {
+            setSavedImages(prev => prev.slice(0, prev.length - 1));
+          }
+        }
       }
     }
   }, [savedImages, toast]);
@@ -169,9 +234,11 @@ const ImageGenerator = () => {
           });
         }
         
+        const compressedImageUrl = compressImageUrl(imageUrl);
+        
         const newImage: SavedImage = {
           id: `image-${Date.now()}`,
-          imageUrl: imageUrl,
+          imageUrl: compressedImageUrl,
           title: title || `${generator.name} ${new Date().toLocaleDateString()}`,
           type: generator.id,
           description: description,

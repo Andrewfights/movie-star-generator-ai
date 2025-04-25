@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
 import { ModelId, AspectRatioId } from '@/types/generators';
 
-const MAX_SAVED_POSTERS = 10;
+const MAX_SAVED_POSTERS = 5;
+const MAX_IMAGE_SIZE_KB = 300;
 
 interface SavedPoster {
   id: string;
@@ -58,18 +59,82 @@ const MoviePosterGenerator = () => {
     loadSavedPosters();
   }, []);
 
+  const compressImageUrl = (imageUrl: string): string => {
+    if (!imageUrl.startsWith('data:image')) {
+      return imageUrl;
+    }
+    
+    try {
+      const canvas = document.createElement('canvas');
+      const img = new Image();
+      
+      img.onerror = () => {
+        console.error("Failed to process image for compression");
+      };
+      
+      const maxDim = 500;
+      
+      img.src = imageUrl;
+      
+      if (!img.complete || !img.naturalWidth) {
+        return imageUrl;
+      }
+      
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      
+      if (width > height) {
+        if (width > maxDim) {
+          height = Math.round(height * maxDim / width);
+          width = maxDim;
+        }
+      } else {
+        if (height > maxDim) {
+          width = Math.round(width * maxDim / height);
+          height = maxDim;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return imageUrl;
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      return canvas.toDataURL('image/jpeg', 0.7);
+    } catch (e) {
+      console.error("Error compressing image:", e);
+      return imageUrl;
+    }
+  };
+
   useEffect(() => {
     if (savedPosters.length > 0) {
       try {
         const postersToSave = savedPosters.slice(0, MAX_SAVED_POSTERS);
-        localStorage.setItem('savedPosters', JSON.stringify(postersToSave));
+        
+        const processedPosters = postersToSave.map(poster => ({
+          ...poster,
+          imageUrl: compressImageUrl(poster.imageUrl)
+        }));
+        
+        localStorage.setItem('savedPosters', JSON.stringify(processedPosters));
       } catch (error) {
         console.error("Error saving posters to localStorage:", error);
-        toast({
-          title: "Storage limit reached",
-          description: "Unable to save more posters. Try deleting some older posters.",
-          variant: "destructive",
-        });
+        
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          toast({
+            title: "Storage limit reached",
+            description: "Removing oldest poster due to storage constraints.",
+            variant: "destructive",
+          });
+          
+          if (savedPosters.length > 1) {
+            setSavedPosters(prev => prev.slice(0, prev.length - 1));
+          }
+        }
       }
     }
   }, [savedPosters, toast]);
@@ -160,9 +225,11 @@ const MoviePosterGenerator = () => {
           });
         }
         
+        const compressedImageUrl = compressImageUrl(imageUrl);
+        
         const newPoster: SavedPoster = {
           id: `poster-${Date.now()}`,
-          imageUrl: imageUrl,
+          imageUrl: compressedImageUrl,
           title: movieTitle,
           genre: selectedGenre,
           description: description,
