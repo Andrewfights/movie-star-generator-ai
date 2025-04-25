@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import ApiKeyInput from '../ApiKeyInput';
 
 const GENRES = [
@@ -20,7 +21,14 @@ const MODELS = [
   { id: "gpt-image-1", name: "GPT-image-1", ratio: "1024x1024" }
 ] as const;
 
+const ASPECT_RATIOS = [
+  { id: "1:1", name: "Square (1:1)", size: "1024x1024" },
+  { id: "2:3", name: "Portrait (2:3)", size: "1024x1536" },
+  { id: "3:2", name: "Landscape (3:2)", size: "1536x1024" },
+] as const;
+
 export type ModelId = typeof MODELS[number]["id"];
+export type AspectRatioId = typeof ASPECT_RATIOS[number]["id"];
 
 interface ImageUploadFormProps {
   onFileSelect: (file: File) => void;
@@ -29,9 +37,13 @@ interface ImageUploadFormProps {
   setMovieTitle: (title: string) => void;
   setSelectedGenre: (genre: string) => void;
   setSelectedModel: (model: ModelId) => void;
+  setDescription: (description: string) => void;
+  setAspectRatio: (ratio: AspectRatioId) => void;
   movieTitle: string;
   selectedGenre: string;
   selectedModel: ModelId;
+  description: string;
+  aspectRatio: AspectRatioId;
   isGenerating: boolean;
   selectedFile: File | null;
   apiKey: string;
@@ -45,9 +57,13 @@ const ImageUploadForm = ({
   setMovieTitle,
   setSelectedGenre,
   setSelectedModel,
+  setDescription,
+  setAspectRatio,
   movieTitle,
   selectedGenre,
   selectedModel,
+  description,
+  aspectRatio,
   isGenerating,
   selectedFile,
   apiKey,
@@ -105,6 +121,13 @@ const ImageUploadForm = ({
           className="w-full bg-gray-900 border-gray-800"
         />
 
+        <Textarea
+          placeholder="Enter a description for your movie poster"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full bg-gray-900 border-gray-800 min-h-[100px]"
+        />
+
         <Select onValueChange={(value: ModelId) => setSelectedModel(value)} value={selectedModel}>
           <SelectTrigger className="w-full bg-gray-900 border-gray-800">
             <SelectValue placeholder="Choose an AI model" />
@@ -113,6 +136,19 @@ const ImageUploadForm = ({
             {MODELS.map((model) => (
               <SelectItem key={model.id} value={model.id}>
                 {model.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select onValueChange={(value: AspectRatioId) => setAspectRatio(value)} value={aspectRatio}>
+          <SelectTrigger className="w-full bg-gray-900 border-gray-800">
+            <SelectValue placeholder="Choose aspect ratio" />
+          </SelectTrigger>
+          <SelectContent>
+            {ASPECT_RATIOS.map((ratio) => (
+              <SelectItem key={ratio.id} value={ratio.id}>
+                {ratio.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -134,7 +170,7 @@ const ImageUploadForm = ({
         <Button
           className="w-full"
           onClick={onGenerate}
-          disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey || !movieTitle.trim()}
+          disabled={isGenerating || !selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio}
         >
           {isGenerating ? "Generating..." : "Generate My Movie Poster"}
         </Button>

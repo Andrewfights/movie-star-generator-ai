@@ -8,13 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
-import type { ModelId } from './movie-poster/ImageUploadForm';
+import type { ModelId, AspectRatioId } from './movie-poster/ImageUploadForm';
 
 interface SavedPoster {
   id: string;
   imageUrl: string;
   title: string;
   genre: string;
+  description: string;
+  aspectRatio: AspectRatioId;
   createdAt: Date;
   model: ModelId;
 }
@@ -23,6 +25,8 @@ const MoviePosterGenerator = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [movieTitle, setMovieTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioId>("2:3");
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
@@ -66,11 +70,24 @@ const MoviePosterGenerator = () => {
     reader.readAsDataURL(file);
   };
 
+  const getImageSize = (aspectRatio: AspectRatioId) => {
+    switch (aspectRatio) {
+      case "1:1":
+        return "1024x1024";
+      case "2:3":
+        return "1024x1536";
+      case "3:2":
+        return "1536x1024";
+      default:
+        return "1024x1024";
+    }
+  };
+
   const handleGenerate = async () => {
-    if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim()) {
+    if (!selectedFile || !selectedGenre || !apiKey || !movieTitle.trim() || !description.trim() || !aspectRatio) {
       toast({
         title: "Missing information",
-        description: "Please upload a photo, select a genre, provide a movie title, and an API key",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -79,9 +96,8 @@ const MoviePosterGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
+      const prompt = `Create a movie poster for "${movieTitle}" in the ${selectedGenre} genre featuring this person as the main character. The description is: ${description}. Make it look like a professional Hollywood movie poster with appropriate tagline and visual effects for the ${selectedGenre} genre. The movie title "${movieTitle}" should be prominently displayed.`;
       
-      // Create request body based on the selected model
       let requestBody: any = {
         model: selectedModel,
         prompt: prompt,
@@ -89,15 +105,12 @@ const MoviePosterGenerator = () => {
         user: "movieposter-app-user",
       };
       
-      // Add model-specific parameters
       if (selectedModel === "dall-e-3") {
-        requestBody.size = "1024x1792";
-        requestBody.response_format = "url";
-        requestBody.style = "vivid"; // Only DALL-E 3 supports the style parameter
-        requestBody.quality = "standard"; // DALL-E 3 supports "standard" and "hd"
+        requestBody.size = getImageSize(aspectRatio);
+        requestBody.style = "vivid";
+        requestBody.quality = "standard";
       } else if (selectedModel === "gpt-image-1") {
-        requestBody.size = "1024x1024";
-        // GPT-image-1 supports "low", "medium", "high", and "auto" for quality
+        requestBody.size = getImageSize(aspectRatio);
         requestBody.quality = "high";
       }
       
@@ -113,12 +126,10 @@ const MoviePosterGenerator = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // Handle different response formats based on the model
         let imageUrl;
         if (selectedModel === "dall-e-3") {
           imageUrl = data.data[0].url;
         } else if (selectedModel === "gpt-image-1") {
-          // Check if the response has b64_json instead of url for gpt-image-1
           if (data.data[0].b64_json) {
             imageUrl = `data:image/png;base64,${data.data[0].b64_json}`;
           } else if (data.data[0].url) {
@@ -130,12 +141,13 @@ const MoviePosterGenerator = () => {
         
         setGeneratedImage(imageUrl);
         
-        // Save the generated poster automatically
         const newPoster: SavedPoster = {
           id: `poster-${Date.now()}`,
           imageUrl: imageUrl,
           title: movieTitle,
           genre: selectedGenre,
+          description: description,
+          aspectRatio: aspectRatio,
           createdAt: new Date(),
           model: selectedModel
         };
@@ -236,9 +248,13 @@ const MoviePosterGenerator = () => {
                   setMovieTitle={setMovieTitle}
                   setSelectedGenre={setSelectedGenre}
                   setSelectedModel={setSelectedModel}
+                  setDescription={setDescription}
+                  setAspectRatio={setAspectRatio}
                   movieTitle={movieTitle}
                   selectedGenre={selectedGenre}
                   selectedModel={selectedModel}
+                  description={description}
+                  aspectRatio={aspectRatio}
                   isGenerating={isGenerating}
                   selectedFile={selectedFile}
                   apiKey={apiKey}
@@ -262,13 +278,13 @@ const MoviePosterGenerator = () => {
           </TabsContent>
           
           <TabsContent value="gallery" className="mt-4">
-            {savedPosters.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-400">No posters saved yet. Generate some posters to see them here!</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedPosters.map((poster) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedPosters.length === 0 ? (
+                <div className="text-center py-12 col-span-full">
+                  <p className="text-gray-400">No posters saved yet. Generate some posters to see them here!</p>
+                </div>
+              ) : (
+                savedPosters.map((poster) => (
                   <Card key={poster.id} className="bg-gray-900 border-gray-800">
                     <CardContent className="p-4 space-y-4">
                       <div className="aspect-[2/3] relative bg-gray-800 rounded-lg overflow-hidden">
@@ -283,8 +299,11 @@ const MoviePosterGenerator = () => {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-white">{poster.title}</h3>
-                        <p className="text-sm text-gray-400">{poster.genre} • {poster.model}</p>
+                        <p className="text-sm text-gray-400 line-clamp-2">{poster.description}</p>
                         <p className="text-xs text-gray-500 mt-1">
+                          {poster.genre} • {poster.model} • {poster.aspectRatio}
+                        </p>
+                        <p className="text-xs text-gray-500">
                           {formatDate(poster.createdAt)}
                         </p>
                       </div>
@@ -308,9 +327,9 @@ const MoviePosterGenerator = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
