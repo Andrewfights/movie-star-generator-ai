@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { GeneratorType } from "@/types/generators";
-import { Film, Image, Sticker, Egg, Gift, Box } from "lucide-react";
+import { Film, Image, Sticker, Egg, Gift, Package } from "lucide-react";
 
 export const GENERATORS: GeneratorType[] = [
   {
@@ -46,11 +47,11 @@ export const GENERATORS: GeneratorType[] = [
   },
   {
     id: "bubble-toy",
-    name: "Bubble Toy Box",
-    description: "Transform into an adorable bubble toy in a clear display box!",
-    promptTemplate: "Create a soft focus photograph of a pastel-colored bubble toy inside a clear acrylic box, arranged with other similar toys. Transform the person from the reference image into a small, round, shiny, and smooth bubble toy with a cute minimal cartoon face, maintaining their distinctive features and outfit/clothing colors. {description} Studio lighting with gentle reflections on the acrylic surface, dreamy and polished aesthetic with a softly blurred background highlighting the toys' glossy surfaces. The bubble toy should clearly represent the person's appearance and outfit from the reference image in a cute, miniaturized form.",
-    examplePrompt: "Transform this person into a cute bubble toy in an acrylic display box.",
-    icon: Box
+    name: "Action Figure",
+    description: "Transform into a vintage-style action figure in classic bubble packaging!",
+    promptTemplate: "Create a photorealistic vintage-style action figure in a clear plastic bubble packaging attached to a cardboard backing, based on the person from the reference image. The figure should maintain their distinctive features and outfit/clothing colors. {description} Use dramatic studio lighting with reflections on the clear plastic bubble, creating an authentic retro toy packaging feel. Add wear and aging details to the cardboard backing for authenticity. The action figure should be positioned in a dynamic pose inside the clear plastic bubble, with vintage-style toy packaging design elements and faux wear marks for authenticity.",
+    examplePrompt: "Transform this person into a vintage action figure in clear bubble packaging.",
+    icon: Package
   }
 ];
 
